@@ -4,6 +4,7 @@ import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-monokai";
 import "ace-builds/src-noconflict/ext-language_tools";
+import { AceSnippet } from "../constants/AceSnippet";
 
 const CodeEditorWindow2 = ({ onChange, language, code, theme }) => {
     const editorRef = useRef(null);
@@ -18,22 +19,7 @@ const CodeEditorWindow2 = ({ onChange, language, code, theme }) => {
         if (editorRef.current) {
             const editor = editorRef.current.editor;
 
-            const customCompletions = [
-                { caption: "foo", value: "foo", meta: "Custom" },
-                { caption: "bar", value: "bar", meta: "Custom" },
-                { caption: "baz", value: "baz", meta: "Custom" },
-                {
-                    caption: "for loop",
-                    value: "for (var i = 0; i < length; i++) {\n\t//  Your code here\n}",
-                    meta: "for snippet",
-                },
-                {
-                    caption: "saurabh",
-                    value: `rana
-  saaurabh`,
-                    meta: "abc",
-                },
-            ];
+            const customCompletions = AceSnippet
 
             window.ace.acequire("ace/ext/language_tools").addCompleter({
                 getCompletions: function (editor, session, pos, prefix, callback) {

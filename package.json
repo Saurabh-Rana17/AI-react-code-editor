@@ -1,6 +1,7 @@
 {
   "private": true,
   "dependencies": {
+    "@codeium/react-code-editor": "^1.0.12",
     "@monaco-editor/react": "^4.4.4",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",

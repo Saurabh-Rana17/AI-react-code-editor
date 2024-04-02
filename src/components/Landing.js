@@ -54,6 +54,7 @@ const Landing = () => {
   const [processing, setProcessing] = useState(null);
   const [theme, setTheme] = useState("cobalt");
   const [language, setLanguage] = useState(languageOptions[0]);
+  const [showAiEditor, setShowAiEditor] = useState(false)
 
   const enterPress = useKeyPress("Enter");
   const ctrlPress = useKeyPress("Control");
@@ -202,6 +203,11 @@ const Landing = () => {
     });
   };
 
+  function handleShowAiEditor() {
+    console.log('handleShowAiEditor clicked')
+    setShowAiEditor(prev => !prev)
+  }
+  console.log('page loaded');
   return (
     <>
       <ToastContainer
@@ -217,7 +223,7 @@ const Landing = () => {
       />
 
 
-      <div className="h-4 w-full bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500"></div>
+      {/* <div className="h-4 w-full bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500"></div> */}
       <div className="flex flex-row">
         <div className="px-4 ml-12 py-2">
           <LanguagesDropdown onSelectChange={onSelectChange} />
@@ -225,15 +231,25 @@ const Landing = () => {
         <div className="px-4 py-2">
           <ThemeDropdown handleThemeChange={handleThemeChange} theme={theme} />
         </div>
+        <div className="px-4 py-2 ">
+          <button onClick={handleShowAiEditor} className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"> {showAiEditor ? '' : 'Ai '} Editor</button>
+        </div>
       </div>
       <div className="flex flex-row space-x-4 items-start px-4 py-4">
         <div className="flex flex-col w-full h-full justify-start items-end">
-          <CodeEditorWindow2
+          {showAiEditor && <CodeEditorWindow
             code={code}
             onChange={onChange}
             language={language?.value}
             theme={theme.value}
-          />
+          />}
+          {!showAiEditor && <CodeEditorWindow2
+            code={code}
+            onChange={onChange}
+            language={language?.value}
+            theme={theme.value}
+          />}
+
         </div>
 
         <div className="right-container flex flex-shrink-0 w-[30%] flex-col">

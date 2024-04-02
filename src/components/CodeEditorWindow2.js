@@ -1,10 +1,50 @@
 import React, { useEffect, useRef, useState } from "react";
 import AceEditor from "react-ace";
+import "ace-builds/src-noconflict/mode-jsx";
+import "ace-builds/src-min-noconflict/ext-searchbox";
 
-import "ace-builds/src-noconflict/mode-javascript";
-import "ace-builds/src-noconflict/theme-monokai";
+
+// import language 
+import "ace-builds/src-noconflict/mode-c_cpp";
+
+// import theme
+import "ace-builds/src-noconflict/theme-github_dark";
 import "ace-builds/src-noconflict/ext-language_tools";
 import { AceSnippet } from "../constants/AceSnippet";
+import { ReactAceThemes } from "../constants/ReactAceThemes";
+
+// dynamic import 
+const languages = [
+    "javascript",
+    "java",
+    "python",
+    "ruby",
+    "golang",
+    "csharp",
+    "elixir",
+    "typescript",
+    "c_cpp"
+];
+
+// const themes = [
+//     "monokai",
+//     "github",
+//     "tomorrow",
+//     "kuroir",
+//     "twilight",
+//     "xcode",
+//     "textmate",
+//     "solarized_dark",
+//     "solarized_light",
+//     "terminal"
+// ];
+
+languages.forEach(lang => {
+    require(`ace-builds/src-noconflict/mode-${lang}`);
+    require(`ace-builds/src-noconflict/snippets/${lang}`);
+});
+
+ReactAceThemes.forEach(themeval => require(`ace-builds/src-noconflict/theme-${themeval}`));
 
 const CodeEditorWindow2 = ({ onChange, language, code, theme }) => {
     const editorRef = useRef(null);

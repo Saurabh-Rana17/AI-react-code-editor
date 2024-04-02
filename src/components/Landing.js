@@ -174,8 +174,8 @@ const Landing = () => {
     }
   }
   useEffect(() => {
-    defineTheme("oceanic-next").then((_) =>
-      setTheme({ value: "oceanic-next", label: "Oceanic Next" })
+    defineTheme("monokai").then((_) =>
+      setTheme({ value: "monokai", label: "monokai" })
     );
   }, []);
 
@@ -219,7 +219,7 @@ const Landing = () => {
 
       <div className="h-4 w-full bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500"></div>
       <div className="flex flex-row">
-        <div className="px-4 ml-10 py-2">
+        <div className="px-4 ml-12 py-2">
           <LanguagesDropdown onSelectChange={onSelectChange} />
         </div>
         <div className="px-4 py-2">

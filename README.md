@@ -1,4 +1,4 @@
-# CodeRush - Compile and Execute code in 40+ languages
+<!-- # CodeRush - Compile and Execute code in 40+ languages
 
 ⚡️ A code editor that compiles and runs your code on the web.
 Blog: <a href="https://www.freecodecamp.org/news/how-to-build-react-based-code-editor/" target="__blank">FreeCodeCamp - Build A Code IDE with React</a>
@@ -30,4 +30,4 @@ TODO:
 
 ## Support
 
-<a href="https://www.buymeacoffee.com/manuarora" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+<a href="https://www.buymeacoffee.com/manuarora" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a> -->

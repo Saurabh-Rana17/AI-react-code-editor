@@ -33,7 +33,7 @@ export const languageOptions = [
     id: 76,
     name: "C++ (Clang 7.0.1)",
     label: "C++ (Clang 7.0.1)",
-    value: "cpp",
+    value: "c_cpp",
   },
   {
     id: 48,
@@ -45,7 +45,7 @@ export const languageOptions = [
     id: 52,
     name: "C++ (GCC 7.4.0)",
     label: "C++ (GCC 7.4.0)",
-    value: "cpp",
+    value: "c_cpp",
   },
   {
     id: 49,
@@ -57,7 +57,7 @@ export const languageOptions = [
     id: 53,
     name: "C++ (GCC 8.3.0)",
     label: "C++ (GCC 8.3.0)",
-    value: "cpp",
+    value: "c_cpp",
   },
   {
     id: 50,
@@ -69,7 +69,7 @@ export const languageOptions = [
     id: 54,
     name: "C++ (GCC 9.2.0)",
     label: "C++ (GCC 9.2.0)",
-    value: "cpp",
+    value: "c_cpp",
   },
   {
     id: 86,

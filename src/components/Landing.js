@@ -16,6 +16,7 @@ import OutputDetails from "./OutputDetails";
 import ThemeDropdown from "./ThemeDropdown";
 import LanguagesDropdown from "./LanguagesDropdown";
 import CodeEditorWindow2 from "./CodeEditorWindow2";
+import { Button, Modal } from "flowbite-react";
 
 const javascriptDefault = `/**
 * Problem: Binary Search: Search a sorted array for a target value.
@@ -55,6 +56,7 @@ const Landing = () => {
   const [theme, setTheme] = useState("cobalt");
   const [language, setLanguage] = useState(languageOptions[0]);
   const [showAiEditor, setShowAiEditor] = useState(false)
+  const [openModal, setOpenModal] = useState(false)
 
   const enterPress = useKeyPress("Enter");
   const ctrlPress = useKeyPress("Control");
@@ -234,6 +236,34 @@ const Landing = () => {
         <div className="px-4 py-2 ">
           <button onClick={handleShowAiEditor} className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"> {showAiEditor ? '' : 'Ai '} Editor</button>
         </div>
+        <div className="px-4 py-2 ">
+          <button onClick={() => setOpenModal(true)} className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"> Ask AI </button>
+        </div>
+        {/* modal  code */}
+
+        <Modal show={openModal} onClose={() => setOpenModal(false)}>
+
+          <Modal.Header>Terms of Service</Modal.Header>
+          <Modal.Body>
+            <div className="space-y-6">
+              <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                With less than a month to go before the European Union enacts new consumer privacy laws for its citizens,
+                companies around the world are updating their terms of service agreements to comply.
+              </p>
+              <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                The European Union’s General Data Protection Regulation (G.D.P.R.) goes into effect on May 25 and is meant
+                to ensure a common set of data rights in the European Union. It requires organizations to notify users as
+                soon as possible of high-risk data breaches that could personally affect them.
+              </p>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={() => setOpenModal(false)}>Close </Button>
+
+          </Modal.Footer>
+        </Modal>
+        {/* modal code */}
+
       </div>
       <div className="flex flex-row space-x-4 items-start px-4 py-4">
         <div className="flex flex-col w-full h-full justify-start items-end">

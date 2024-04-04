@@ -16,7 +16,7 @@ import OutputDetails from "./OutputDetails";
 import ThemeDropdown from "./ThemeDropdown";
 import LanguagesDropdown from "./LanguagesDropdown";
 import CodeEditorWindow2 from "./CodeEditorWindow2";
-import { Button, Modal } from "flowbite-react";
+import { Button,  Modal, Spinner, TextInput } from "flowbite-react";
 import { Link } from "react-router-dom";
 import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
 
@@ -67,6 +67,8 @@ const Landing = () => {
   const [showAiEditor, setShowAiEditor] = useState(false)
   const [openModal, setOpenModal] = useState(false)
   const [gptResponse,setGptResponse]=useState('')
+  const [promtValue,setPromptValue]=useState('')
+  const [gptLoading,setGptLoading] = useState(false)
 
   const enterPress = useKeyPress("Enter");
   const ctrlPress = useKeyPress("Control");
@@ -221,13 +223,15 @@ const Landing = () => {
   }
 
   async function handleGptResp() {
-
+console.log(promtValue)
+setGptLoading(true)
     const chatCompletion = await openai.chat.completions.create({
-        messages: [{ role: 'system', content: ' just provide code , give code in proper format that can be display within a div tag with proprer formatting dont use any comments dont give html code use new line and tab spaces and indentation to properly format code dont give comments and dont give explaination,give multiline response' }, { role: 'user', content: 'write code to reverse string in javascript ' }],
+        messages: [{ role: 'system', content: ' just provide code , give code in proper format that can be display within a div tag with proprer formatting dont use any comments dont give html code use new line and tab spaces and indentation to properly format code dont give comments and dont give explaination,give multiline response' }, { role: 'user', content: promtValue }],
         model: 'pai-001',
     });
     console.log(chatCompletion.choices[0].message.content);
     setGptResponse(chatCompletion.choices[0].message.content)
+    setGptLoading(false)
     
 }
   // console.log('page loaded');
@@ -258,11 +262,14 @@ const Landing = () => {
           <button onClick={handleShowAiEditor} className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"> {showAiEditor ? '' : 'Ai '} Editor</button>
         </div>
         <div className="px-4 py-2 ">
-          <button onClick={() => setOpenModal(true)} className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"> Ask AI </button>
+          <button onClick={() => {setOpenModal(true)
+          setPromptValue('')
+          setGptResponse('')
+          }} className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"> Ask AI </button>
         </div>
         <div className="px-4 py-2 ">
 
-          <Link to={'preview'} className=" inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0">
+          <Link to={'preview'} className=" inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 font-bold">
               Preview Editor
           </Link>
         </div>
@@ -272,10 +279,12 @@ const Landing = () => {
 
           <Modal.Header>Ask Ai</Modal.Header>
           <Modal.Body>
-           <Button onClick={handleGptResp} >Generate</Button>
+            <TextInput value={promtValue} onChange={(e)=>setPromptValue(e.target.value)} placeholder="Enter your query here"  className="w-4/5 inline-block mr-4"  variant="outlined" />
+           <Button className="inline-block" color={"success"} onClick={handleGptResp} >Generate</Button>
            <pre className="mt-3">
 
-            <SyntaxHighlighter   language="javascript" >
+{gptLoading && <><p>Processing Query....</p> <div><Spinner aria-label="Default status example" /></div></> }
+            <SyntaxHighlighter  language="javascript" >
 
            {gptResponse}
            
@@ -283,7 +292,7 @@ const Landing = () => {
            </pre>
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={() => setOpenModal(false)}>Close </Button>
+            <Button color={"failure"} onClick={() => setOpenModal(false)}>Close </Button>
 
           </Modal.Footer>
         </Modal>

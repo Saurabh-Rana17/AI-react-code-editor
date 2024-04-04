@@ -3,7 +3,7 @@ import CodeEditorWindow from "./CodeEditorWindow";
 import axios from "axios";
 import { classnames } from "../utils/general";
 import { languageOptions } from "../constants/languageOptions";
-
+import OpenAI from "openai";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -16,6 +16,16 @@ import OutputDetails from "./OutputDetails";
 import ThemeDropdown from "./ThemeDropdown";
 import LanguagesDropdown from "./LanguagesDropdown";
 import CodeEditorWindow2 from "./CodeEditorWindow2";
+import { Button, Modal } from "flowbite-react";
+import { Link } from "react-router-dom";
+import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
+
+const openai = new OpenAI({
+  apiKey:process.env.REACT_APP_GPT_KEY
+   , // For self-hosted version you can put anything
+  baseURL: "https://api.pawan.krd/v1", // For self-hosted version, use "http://localhost:3040/v1"
+  dangerouslyAllowBrowser:true
+});
 
 const javascriptDefault = `/**
 * Problem: Binary Search: Search a sorted array for a target value.
@@ -55,6 +65,8 @@ const Landing = () => {
   const [theme, setTheme] = useState("cobalt");
   const [language, setLanguage] = useState(languageOptions[0]);
   const [showAiEditor, setShowAiEditor] = useState(false)
+  const [openModal, setOpenModal] = useState(false)
+  const [gptResponse,setGptResponse]=useState('')
 
   const enterPress = useKeyPress("Enter");
   const ctrlPress = useKeyPress("Control");
@@ -207,7 +219,18 @@ const Landing = () => {
     console.log('handleShowAiEditor clicked')
     setShowAiEditor(prev => !prev)
   }
-  console.log('page loaded');
+
+  async function handleGptResp() {
+
+    const chatCompletion = await openai.chat.completions.create({
+        messages: [{ role: 'system', content: ' just provide code , give code in proper format that can be display within a div tag with proprer formatting dont use any comments dont give html code use new line and tab spaces and indentation to properly format code dont give comments and dont give explaination,give multiline response' }, { role: 'user', content: 'write code to reverse string in javascript ' }],
+        model: 'pai-001',
+    });
+    console.log(chatCompletion.choices[0].message.content);
+    setGptResponse(chatCompletion.choices[0].message.content)
+    
+}
+  // console.log('page loaded');
   return (
     <>
       <ToastContainer
@@ -234,6 +257,38 @@ const Landing = () => {
         <div className="px-4 py-2 ">
           <button onClick={handleShowAiEditor} className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"> {showAiEditor ? '' : 'Ai '} Editor</button>
         </div>
+        <div className="px-4 py-2 ">
+          <button onClick={() => setOpenModal(true)} className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"> Ask AI </button>
+        </div>
+        <div className="px-4 py-2 ">
+
+          <Link to={'preview'} className=" inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0">
+              Preview Editor
+          </Link>
+        </div>
+        {/* modal  code */}
+
+        <Modal  show={openModal} onClose={() => setOpenModal(false)}>
+
+          <Modal.Header>Ask Ai</Modal.Header>
+          <Modal.Body>
+           <Button onClick={handleGptResp} >Generate</Button>
+           <pre className="mt-3">
+
+            <SyntaxHighlighter   language="javascript" >
+
+           {gptResponse}
+           
+            </SyntaxHighlighter>
+           </pre>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={() => setOpenModal(false)}>Close </Button>
+
+          </Modal.Footer>
+        </Modal>
+        {/* modal code */}
+
       </div>
       <div className="flex flex-row space-x-4 items-start px-4 py-4">
         <div className="flex flex-col w-full h-full justify-start items-end">

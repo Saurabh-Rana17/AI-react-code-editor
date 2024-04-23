@@ -6,7 +6,6 @@ import { languageOptions } from "../constants/languageOptions";
 import OpenAI from "openai";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import { defineTheme } from "../lib/defineTheme";
 import useKeyPress from "../hooks/useKeyPress";
 import Footer from "./Footer";
@@ -16,15 +15,16 @@ import OutputDetails from "./OutputDetails";
 import ThemeDropdown from "./ThemeDropdown";
 import LanguagesDropdown from "./LanguagesDropdown";
 import CodeEditorWindow2 from "./CodeEditorWindow2";
-import { Button,  Modal, Spinner, TextInput } from "flowbite-react";
-import { Link } from "react-router-dom";
+import { Button, Modal, Spinner, Tabs, TextInput } from "flowbite-react";
+import { Link, json } from "react-router-dom";
 import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
-
+import { RiRobot2Line } from "react-icons/ri";
+import { SiCompilerexplorer } from "react-icons/si";
+import { CiSaveDown2 } from "react-icons/ci";
 const openai = new OpenAI({
-  apiKey:process.env.REACT_APP_GPT_KEY
-   , // For self-hosted version you can put anything
+  apiKey: process.env.REACT_APP_GPT_KEY, // For self-hosted version you can put anything
   baseURL: "https://api.pawan.krd/v1", // For self-hosted version, use "http://localhost:3040/v1"
-  dangerouslyAllowBrowser:true
+  dangerouslyAllowBrowser: true,
 });
 
 const javascriptDefault = `/**
@@ -64,11 +64,12 @@ const Landing = () => {
   const [processing, setProcessing] = useState(null);
   const [theme, setTheme] = useState("cobalt");
   const [language, setLanguage] = useState(languageOptions[0]);
-  const [showAiEditor, setShowAiEditor] = useState(false)
-  const [openModal, setOpenModal] = useState(false)
-  const [gptResponse,setGptResponse]=useState('')
-  const [promtValue,setPromptValue]=useState('')
-  const [gptLoading,setGptLoading] = useState(false)
+  const [showAiEditor, setShowAiEditor] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [gptResponse, setGptResponse] = useState("");
+  const [promtValue, setPromptValue] = useState("");
+  const [gptLoading, setGptLoading] = useState(false);
+  const [activePrompt, setActivePrompt] = useState("pai");
 
   const enterPress = useKeyPress("Enter");
   const ctrlPress = useKeyPress("Control");
@@ -218,23 +219,69 @@ const Landing = () => {
   };
 
   function handleShowAiEditor() {
-    console.log('handleShowAiEditor clicked')
-    setShowAiEditor(prev => !prev)
+    console.log("handleShowAiEditor clicked");
+    setShowAiEditor((prev) => !prev);
   }
 
   async function handleGptResp() {
-console.log(promtValue)
-setGptLoading(true)
+    console.log(promtValue);
+    setGptLoading(true);
     const chatCompletion = await openai.chat.completions.create({
-        messages: [{ role: 'system', content: ' just provide code , give code in proper format that can be display within a div tag with proprer formatting dont use any comments dont give html code use new line and tab spaces and indentation to properly format code dont give comments and dont give explaination,give multiline response' }, { role: 'user', content: promtValue }],
-        model: 'pai-001',
+      messages: [
+        {
+          role: "system",
+          content:
+            " just provide code , give code in proper format that can be display within a div tag with proprer formatting dont use any comments dont give html code use new line and tab spaces and indentation to properly format code dont give comments and dont give explaination,give multiline response",
+        },
+        { role: "user", content: promtValue },
+      ],
+      model: "pai-001",
     });
     console.log(chatCompletion.choices[0].message.content);
-    setGptResponse(chatCompletion.choices[0].message.content)
-    setGptLoading(false)
-    
-}
-  // console.log('page loaded');
+    setGptResponse(
+      chatCompletion.choices[0].message.content.replace("```", "")
+    );
+    setGptLoading(false);
+  }
+
+  async function handleSelfGpt() {
+    console.log(promtValue);
+    setGptLoading(true);
+    const promptData = {
+      keyword: promtValue,
+    };
+    const res = await fetch("http://127.0.0.1:5000/predict", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(promptData),
+    });
+    const data = await res.json();
+    console.log(data.predicted_code);
+    setGptResponse(data.predicted_code);
+    setGptLoading(false);
+  }
+
+  function handleSave() {
+    const blob = new Blob([code], { type: "text/plain" });
+
+    // Generate a URL for the Blob object
+    const url = URL.createObjectURL(blob);
+
+    // Create an anchor element with download attribute set to the desired filename and href attribute set to the generated URL
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "myCode.txt"; // Change the filename as needed
+
+    // Simulate a click on the anchor element to trigger the file download
+    a.click();
+
+    // Clean up by revoking the URL object to free up resources
+    URL.revokeObjectURL(url);
+  }
+
+  // console.log(activePrompt);
   return (
     <>
       <ToastContainer
@@ -249,7 +296,6 @@ setGptLoading(true)
         pauseOnHover
       />
 
-
       {/* <div className="h-4 w-full bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500"></div> */}
       <div className="flex flex-row">
         <div className="px-4 ml-12 py-2">
@@ -259,61 +305,136 @@ setGptLoading(true)
           <ThemeDropdown handleThemeChange={handleThemeChange} theme={theme} />
         </div>
         <div className="px-4 py-2 ">
-          <button onClick={handleShowAiEditor} className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"> {showAiEditor ? '' : 'Ai '} Editor</button>
+          <button
+            onClick={handleShowAiEditor}
+            className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"
+          >
+            {" "}
+            {showAiEditor ? "" : "Ai "} Editor
+          </button>
         </div>
         <div className="px-4 py-2 ">
-          <button onClick={() => {setOpenModal(true)
-          setPromptValue('')
-          setGptResponse('')
-          }} className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"> Ask AI </button>
+          <button
+            onClick={() => {
+              setOpenModal(true);
+              setPromptValue("");
+              setGptResponse("");
+              setActivePrompt("pai");
+            }}
+            className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"
+          >
+            {" "}
+            Ask AI{" "}
+          </button>
         </div>
         <div className="px-4 py-2 ">
-
-          <Link to={'preview'} className=" inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 font-bold">
-              Preview Editor
+          <Link
+            to={"preview"}
+            className=" inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 font-bold"
+          >
+            Preview Editor
           </Link>
+        </div>
+
+        <div className="px-4 py-2 ">
+          <button
+            className=" inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 font-bold"
+            onClick={handleSave}
+          >
+            <CiSaveDown2 className="inline-block mr-1" />
+            Save
+          </button>
         </div>
         {/* modal  code */}
 
-        <Modal  show={openModal} onClose={() => setOpenModal(false)}>
-
+        <Modal show={openModal} onClose={() => setOpenModal(false)}>
           <Modal.Header>Ask Ai</Modal.Header>
           <Modal.Body>
-            <TextInput value={promtValue} onChange={(e)=>setPromptValue(e.target.value)} placeholder="Enter your query here"  className="w-4/5 inline-block mr-4"  variant="outlined" />
-           <Button className="inline-block" color={"success"} onClick={handleGptResp} >Generate</Button>
-           <pre className="mt-3">
+            <TextInput
+              value={promtValue}
+              onChange={(e) => setPromptValue(e.target.value)}
+              placeholder="Enter your query here"
+              className="w-4/5 inline-block mr-4"
+              variant="outlined"
+            />
+            <Button
+              className="inline-block"
+              color={"success"}
+              onClick={activePrompt === "pai" ? handleGptResp : handleSelfGpt}
+              // onClick={handleSelfGpt}
+            >
+              Generate
+            </Button>
+            <div className="mt-1">
+              <button
+                className={`px-3 py-2 my-2 rounded-xl hover:bg-gray-200 mx-2 border-2 ${
+                  activePrompt === "pai" && "bg-gray-200"
+                }  `}
+                onClick={() => setActivePrompt("pai")}
+              >
+                Pai-001
+              </button>
+              <button
+                className={`px-3 py-2 my-2 rounded-xl hover:bg-gray-200 mx-2 border-2 ${
+                  activePrompt === "selfgpt" && "bg-gray-200"
+                }`}
+                onClick={() => setActivePrompt("selfgpt")}
+              >
+                <span>
+                  <RiRobot2Line className="inline-block mr-1" />
+                  Ai Model
+                </span>
+              </button>
+            </div>
+            <pre className="mt-3 ">
+              {gptLoading && (
+                <>
+                  <p>Processing Query....</p>{" "}
+                  <div>
+                    <Spinner aria-label="Default status example" />
+                  </div>
+                </>
+              )}
 
-{gptLoading && <><p>Processing Query....</p> <div><Spinner aria-label="Default status example" /></div></> }
-            <SyntaxHighlighter  language="javascript" >
-
-           {gptResponse}
-           
-            </SyntaxHighlighter>
-           </pre>
+              {gptResponse ? (
+                <div>
+                  <SyntaxHighlighter language="javascript">
+                    {gptResponse}
+                  </SyntaxHighlighter>
+                </div>
+              ) : (
+                <p className="p-2 pl-4  bg-zinc-100">
+                  click on generate to get your response
+                </p>
+              )}
+            </pre>
           </Modal.Body>
           <Modal.Footer>
-            <Button color={"failure"} onClick={() => setOpenModal(false)}>Close </Button>
-
+            <Button color={"failure"} onClick={() => setOpenModal(false)}>
+              Close{" "}
+            </Button>
           </Modal.Footer>
         </Modal>
         {/* modal code */}
-
       </div>
       <div className="flex flex-row space-x-4 items-start px-4 py-4">
         <div className="flex flex-col w-full h-full justify-start items-end">
-          {showAiEditor && <CodeEditorWindow
-            code={code}
-            onChange={onChange}
-            language={language?.value}
-            theme={theme.value}
-          />}
-          {!showAiEditor && <CodeEditorWindow2
-            code={code}
-            onChange={onChange}
-            language={language?.value}
-            theme={theme.value}
-          />}
-
+          {showAiEditor && (
+            <CodeEditorWindow
+              code={code}
+              onChange={onChange}
+              language={language?.value}
+              theme={theme.value}
+            />
+          )}
+          {!showAiEditor && (
+            <CodeEditorWindow2
+              code={code}
+              onChange={onChange}
+              language={language?.value}
+              theme={theme.value}
+            />
+          )}
         </div>
 
         <div className="right-container flex flex-shrink-0 w-[30%] flex-col">
@@ -331,6 +452,8 @@ setGptLoading(true)
                 !code ? "opacity-50" : ""
               )}
             >
+              <SiCompilerexplorer className="inline-block m-1" />
+
               {processing ? "Processing..." : "Compile and Execute"}
             </button>
           </div>

@@ -4,7 +4,6 @@ import monacoThemes from "monaco-themes/themes/themelist";
 import { customStyles } from "../constants/customStyles";
 import { ReactAceThemes } from "../constants/ReactAceThemes";
 
-
 const ThemeDropdown = ({ handleThemeChange, theme }) => {
   return (
     <Select
@@ -18,7 +17,7 @@ const ThemeDropdown = ({ handleThemeChange, theme }) => {
       options={ReactAceThemes.map((theme) => ({
         label: theme,
         value: theme,
-        key: theme
+        key: theme,
       }))}
       value={theme}
       styles={customStyles}

@@ -19,8 +19,12 @@ import { Button, Modal, Spinner, Tabs, TextInput } from "flowbite-react";
 import { Link, json } from "react-router-dom";
 import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
 import { RiRobot2Line } from "react-icons/ri";
-import { SiCompilerexplorer } from "react-icons/si";
+import { SiCcleaner, SiCompilerexplorer } from "react-icons/si";
 import { CiSaveDown2 } from "react-icons/ci";
+import languageConstant from "../constants/languageConstant";
+import { IoCloudOfflineOutline } from "react-icons/io5";
+import { VscOpenPreview } from "react-icons/vsc";
+import { MdDeleteOutline } from "react-icons/md";
 const openai = new OpenAI({
   apiKey: process.env.REACT_APP_GPT_KEY, // For self-hosted version you can put anything
   baseURL: "https://api.pawan.krd/v1", // For self-hosted version, use "http://localhost:3040/v1"
@@ -63,13 +67,15 @@ const Landing = () => {
   const [outputDetails, setOutputDetails] = useState(null);
   const [processing, setProcessing] = useState(null);
   const [theme, setTheme] = useState("cobalt");
-  const [language, setLanguage] = useState(languageOptions[0]);
+  const [language, setLanguage] = useState(languageConstant[54]);
   const [showAiEditor, setShowAiEditor] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [gptResponse, setGptResponse] = useState("");
   const [promtValue, setPromptValue] = useState("");
   const [gptLoading, setGptLoading] = useState(false);
   const [activePrompt, setActivePrompt] = useState("pai");
+  const [isOffline, setIsOffline] = useState(false);
+  const [filecode, setFileCode] = useState("");
 
   const enterPress = useKeyPress("Enter");
   const ctrlPress = useKeyPress("Control");
@@ -79,13 +85,13 @@ const Landing = () => {
     setLanguage(sl);
   };
 
-  useEffect(() => {
-    if (enterPress && ctrlPress) {
-      console.log("enterPress", enterPress);
-      console.log("ctrlPress", ctrlPress);
-      handleCompile();
-    }
-  }, [ctrlPress, enterPress]);
+  // useEffect(() => {
+  //   if (enterPress && ctrlPress) {
+  //     console.log("enterPress", enterPress);
+  //     console.log("ctrlPress", ctrlPress);
+  //     handleCompile();
+  //   }
+  // }, [ctrlPress, enterPress]);
   const onChange = (action, data) => {
     switch (action) {
       case "code": {
@@ -272,7 +278,28 @@ const Landing = () => {
     // Create an anchor element with download attribute set to the desired filename and href attribute set to the generated URL
     const a = document.createElement("a");
     a.href = url;
-    a.download = "myCode.txt"; // Change the filename as needed
+    switch (language.name) {
+      case "javascript":
+        a.download = "myCode.js"; // Change the filename as needed
+        break;
+      case "java":
+        a.download = "myCode.java"; // Change the filename as needed
+        break;
+      case "python":
+        a.download = "myCode.py"; // Change the filename as needed
+        break;
+      case "c":
+        a.download = "myCode.c"; // Change the filename as needed
+        break;
+      case "cpp":
+        a.download = "myCode.cpp"; // Change the filename as needed
+        break;
+
+      default:
+        a.download = "myCode.txt"; // Change the filename as needed
+
+        break;
+    }
 
     // Simulate a click on the anchor element to trigger the file download
     a.click();
@@ -280,6 +307,116 @@ const Landing = () => {
     // Clean up by revoking the URL object to free up resources
     URL.revokeObjectURL(url);
   }
+
+  async function handlePiston() {
+    setProcessing(true);
+    const formData = {
+      language: language.name,
+      version: language.version,
+      files: [
+        {
+          content: code,
+        },
+      ],
+      stdin: customInput,
+    };
+
+    try {
+      const response = await fetch("https://emkc.org/api/v2/piston/execute", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Add any other headers as needed
+        },
+        body: JSON.stringify(formData),
+      });
+
+      // Check if request was successful
+      if (response.ok) {
+        const responseData = await response.json();
+        // Handle successful response data
+        console.log(responseData.run.code);
+        setOutputDetails(responseData.run);
+        if (responseData.run.code == 0) {
+          showSuccessToast(`Compiled Successfully!`);
+        } else {
+          showErrorToast("failed to execute");
+        }
+        setProcessing(false);
+      } else {
+        // Handle error response
+        console.error("Error:", response.statusText);
+        setProcessing(false);
+      }
+    } catch (error) {
+      // Handle network errors or other exceptions
+      console.error("Error:", error);
+      setProcessing(false);
+    }
+  }
+
+  function handleOffline() {
+    setIsOffline((prev) => !prev);
+  }
+
+  async function handleOfflineCompile() {
+    setProcessing(true);
+    const formData = {
+      code: code,
+    };
+
+    try {
+      const response = await fetch(
+        `http://localhost:4000/execute/${language.name}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      // Check if request was successful
+      if (response.ok) {
+        const responseData = await response.json();
+        // Handle successful response data
+        console.log(responseData);
+        setOutputDetails(responseData);
+
+        showSuccessToast(`Compiled Successfully!`);
+
+        setProcessing(false);
+      } else {
+        // Handle error response
+        const responseData = await response.json();
+
+        console.error("Error:", responseData);
+        showErrorToast("Failed to execute");
+        setOutputDetails(responseData);
+        setProcessing(false);
+      }
+    } catch (error) {
+      // Handle network errors or other exceptions
+      if (error) console.error("Error:", error);
+      setProcessing(false);
+    }
+  }
+
+  function handleFileChange(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const content = event.target.result;
+      setCode(content);
+      setFileCode(content);
+      // console.log(content);
+    };
+
+    reader.readAsText(file);
+  }
+  console.log(code);
 
   // console.log(activePrompt);
   return (
@@ -298,22 +435,33 @@ const Landing = () => {
 
       {/* <div className="h-4 w-full bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500"></div> */}
       <div className="flex flex-row">
-        <div className="px-4 ml-12 py-2">
-          <LanguagesDropdown onSelectChange={onSelectChange} />
+        <div className="px-1 py-2">
+          <input className="w-36" type="file" onChange={handleFileChange} />
+        </div>
+        <div className="px-1 ml-1 py-2">
+          <LanguagesDropdown
+            isOffline={isOffline}
+            onSelectChange={onSelectChange}
+          />
         </div>
         <div className="px-4 py-2">
           <ThemeDropdown handleThemeChange={handleThemeChange} theme={theme} />
         </div>
-        <div className="px-4 py-2 ">
+        <div className="px-2 py-2 ">
           <button
             onClick={handleShowAiEditor}
             className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"
           >
             {" "}
-            {showAiEditor ? "" : "Ai "} Editor
+            <div
+              className={`h-2 w-2 mr-1 rounded-full  inline-block ${
+                showAiEditor ? "bg-green-500" : "bg-red-500"
+              }`}
+            ></div>
+            Ai Editor
           </button>
         </div>
-        <div className="px-4 py-2 ">
+        <div className="px-2 py-2 ">
           <button
             onClick={() => {
               setOpenModal(true);
@@ -323,26 +471,37 @@ const Landing = () => {
             }}
             className=" border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0"
           >
-            {" "}
             Ask AI{" "}
           </button>
         </div>
-        <div className="px-4 py-2 ">
+        <div className="px-2 py-2 ">
           <Link
             to={"preview"}
             className=" inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 font-bold"
           >
+            <VscOpenPreview className="inline-block mr-1" />
             Preview Editor
           </Link>
         </div>
 
-        <div className="px-4 py-2 ">
+        <div className="px-2 py-2 ">
           <button
-            className=" inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 font-bold"
+            className=" inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 font-bold "
             onClick={handleSave}
           >
             <CiSaveDown2 className="inline-block mr-1" />
             Save
+          </button>
+        </div>
+        <div className="px-2 py-2 ">
+          <button
+            className={`  inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 ${
+              isOffline && "bg-black text-white "
+            }  `}
+            onClick={handleOffline}
+          >
+            <IoCloudOfflineOutline className="inline-block mr-1" />
+            Use Offline
           </button>
         </div>
         {/* modal  code */}
@@ -399,7 +558,7 @@ const Landing = () => {
               {gptResponse ? (
                 <div>
                   <SyntaxHighlighter language="javascript">
-                    {gptResponse}
+                    {!gptLoading && gptResponse}
                   </SyntaxHighlighter>
                 </div>
               ) : (
@@ -421,17 +580,19 @@ const Landing = () => {
         <div className="flex flex-col w-full h-full justify-start items-end">
           {showAiEditor && (
             <CodeEditorWindow
+              key={filecode}
               code={code}
               onChange={onChange}
-              language={language?.value}
+              language={language?.name}
               theme={theme.value}
             />
           )}
           {!showAiEditor && (
             <CodeEditorWindow2
+              key={filecode}
               code={code}
               onChange={onChange}
-              language={language?.value}
+              language={language?.name}
               theme={theme.value}
             />
           )}
@@ -444,18 +605,21 @@ const Landing = () => {
               customInput={customInput}
               setCustomInput={setCustomInput}
             />
-            <button
-              onClick={handleCompile}
-              disabled={!code}
-              className={classnames(
-                "mt-4 border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0",
-                !code ? "opacity-50" : ""
-              )}
-            >
-              <SiCompilerexplorer className="inline-block m-1" />
+            <div>
+              <button
+                // onClick={handleCompile}
+                onClick={isOffline ? handleOfflineCompile : handlePiston}
+                disabled={!code}
+                className={classnames(
+                  "mt-4 inline-block border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 hover:bg-green-500 hover:text-white",
+                  !code ? "opacity-50" : ""
+                )}
+              >
+                <SiCompilerexplorer className="inline-block m-1" />
 
-              {processing ? "Processing..." : "Compile and Execute"}
-            </button>
+                {processing ? "Processing..." : "Compile and Execute"}
+              </button>
+            </div>
           </div>
           {outputDetails && <OutputDetails outputDetails={outputDetails} />}
         </div>

@@ -4,31 +4,29 @@ const OutputWindow = ({ outputDetails }) => {
   const getOutput = () => {
     let statusId = outputDetails?.status?.id;
 
-    if (statusId === 6) {
+    if (outputDetails.result) {
       // compilation error
       return (
-        <pre className="px-2 py-1 font-normal text-xs text-red-500">
-          {atob(outputDetails?.compile_output)}
-        </pre>
-      );
-    } else if (statusId === 3) {
-      return (
         <pre className="px-2 py-1 font-normal text-xs text-green-500">
-          {atob(outputDetails.stdout) !== null
-            ? `${atob(outputDetails.stdout)}`
-            : null}
+          {outputDetails?.result}
         </pre>
       );
-    } else if (statusId === 5) {
+    } else if (outputDetails.error) {
       return (
         <pre className="px-2 py-1 font-normal text-xs text-red-500">
-          {`Time Limit Exceeded`}
+          {outputDetails.error}
+        </pre>
+      );
+    } else if (outputDetails.stderr) {
+      return (
+        <pre className="px-2 py-1 font-normal text-xs text-red-500">
+          {outputDetails.output}
         </pre>
       );
     } else {
       return (
-        <pre className="px-2 py-1 font-normal text-xs text-red-500">
-          {atob(outputDetails?.stderr)}
+        <pre className="px-2 py-1 font-normal text-xs text-green-500">
+          {outputDetails.output}
         </pre>
       );
     }

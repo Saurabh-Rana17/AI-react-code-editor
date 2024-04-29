@@ -438,7 +438,7 @@ const Landing = () => {
         <div className="px-1 py-2">
           <input className="w-36" type="file" onChange={handleFileChange} />
         </div>
-        <div className="px-1 ml-1 py-2">
+        <div className="px-1 ml-1 py-2 mr-2">
           <LanguagesDropdown
             isOffline={isOffline}
             onSelectChange={onSelectChange}

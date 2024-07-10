@@ -597,4 +597,4 @@ function addVersionToLabel(languages) {
 const updatedLanguageConstant = addVersionToLabel(languageConstant2);
 
 // Print updated languageConstant
-console.log(updatedLanguageConstant);
+console.log(updatedLanguageConstant.length);

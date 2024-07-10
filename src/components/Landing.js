@@ -366,6 +366,8 @@ const Landing = () => {
     };
 
     try {
+      let a = JSON.stringify(formData);
+      console.log(a);
       const response = await fetch(
         `http://localhost:4000/execute/${language.name}`,
         {
@@ -373,7 +375,7 @@ const Landing = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          body: a,
         }
       );
 
@@ -436,7 +438,7 @@ const Landing = () => {
       {/* <div className="h-4 w-full bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500"></div> */}
       <div className="flex flex-row">
         <div className="px-1 py-2">
-          <input className="w-36" type="file" onChange={handleFileChange} />
+          <input className="w-28" type="file" onChange={handleFileChange} />
         </div>
         <div className="px-1 ml-1 py-2 mr-2">
           <LanguagesDropdown
@@ -493,7 +495,7 @@ const Landing = () => {
             Save
           </button>
         </div>
-        <div className="px-2 py-2 ">
+        {/* <div className="px-2 py-2 ">
           <button
             className={`  inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 ${
               isOffline && "bg-black text-white "
@@ -503,7 +505,7 @@ const Landing = () => {
             <IoCloudOfflineOutline className="inline-block mr-1" />
             Use Offline
           </button>
-        </div>
+        </div> */}
         {/* modal  code */}
 
         <Modal show={openModal} onClose={() => setOpenModal(false)}>

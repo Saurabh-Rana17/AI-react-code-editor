@@ -535,7 +535,7 @@ const Landing = () => {
               >
                 Pai-001
               </button>
-              <button
+              {/* <button
                 className={`px-3 py-2 my-2 rounded-xl hover:bg-gray-200 mx-2 border-2 ${
                   activePrompt === "selfgpt" && "bg-gray-200"
                 }`}
@@ -545,7 +545,7 @@ const Landing = () => {
                   <RiRobot2Line className="inline-block mr-1" />
                   Ai Model
                 </span>
-              </button>
+              </button> */}
             </div>
             <pre className="mt-3 ">
               {gptLoading && (

@@ -1,27 +1,27 @@
 import React, { useEffect, useState } from "react";
-import CodeEditorWindow from "./CodeEditorWindow";
+import CodeEditorWindow from "../../components/CodeEditorWindow";
 import axios from "axios";
-import { classnames } from "../utils/general";
-import { languageOptions } from "../constants/languageOptions";
+import { classnames } from "../../utils/general";
+import { languageOptions } from "../../constants/languageOptions";
 import OpenAI from "openai";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { defineTheme } from "../lib/defineTheme";
-import useKeyPress from "../hooks/useKeyPress";
-import Footer from "./Footer";
-import OutputWindow from "./OutputWindow";
-import CustomInput from "./CustomInput";
-import OutputDetails from "./OutputDetails";
-import ThemeDropdown from "./ThemeDropdown";
-import LanguagesDropdown from "./LanguagesDropdown";
-import CodeEditorWindow2 from "./CodeEditorWindow2";
+import { defineTheme } from "../../lib/defineTheme";
+import useKeyPress from "../../hooks/useKeyPress";
+import Footer from "../../components/Footer";
+import OutputWindow from "../../components/OutputWindow";
+import CustomInput from "../../components/CustomInput";
+import OutputDetails from "../../components/OutputDetails";
+import ThemeDropdown from "../../components/ThemeDropdown";
+import LanguagesDropdown from "../../components/LanguagesDropdown";
+import CodeEditorWindow2 from "../../components/CodeEditorWindow2";
 import { Button, Modal, Spinner, Tabs, TextInput } from "flowbite-react";
 import { Link, json } from "react-router-dom";
 import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
 import { RiRobot2Line } from "react-icons/ri";
 import { SiCcleaner, SiCompilerexplorer } from "react-icons/si";
 import { CiSaveDown2 } from "react-icons/ci";
-import languageConstant from "../constants/languageConstant";
+import languageConstant from "../../constants/languageConstant";
 import { IoCloudOfflineOutline } from "react-icons/io5";
 import { VscOpenPreview } from "react-icons/vsc";
 import { MdDeleteOutline } from "react-icons/md";
@@ -367,7 +367,6 @@ const Landing = () => {
 
     try {
       let a = JSON.stringify(formData);
-      console.log(a);
       const response = await fetch(
         `http://localhost:4000/execute/${language.name}`,
         {
@@ -413,14 +412,11 @@ const Landing = () => {
       const content = event.target.result;
       setCode(content);
       setFileCode(content);
-      // console.log(content);
     };
 
     reader.readAsText(file);
   }
-  console.log(code);
 
-  // console.log(activePrompt);
   return (
     <>
       <ToastContainer

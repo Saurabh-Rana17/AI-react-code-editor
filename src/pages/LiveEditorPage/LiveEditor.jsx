@@ -1,5 +1,5 @@
 import { useState } from "react";
-import LiveEditorWindow from "./LiveEditorWindow";
+import LiveEditorWindow from "../../components/LiveEditorWindow";
 import "./liveEditor.css";
 export default function LiveEditor() {
   const [html, setHtml] = useState("");
@@ -13,7 +13,7 @@ export default function LiveEditor() {
     <script>${js}</script>
   </html>
   `;
-  console.log(html,css,js)
+  console.log(html, css, js);
 
   return (
     <>

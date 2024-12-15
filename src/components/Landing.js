@@ -321,7 +321,7 @@ const Landing = () => {
 
     reader.readAsText(file);
   }
-  console.log(code);
+  // console.log(code);
 
   // console.log(activePrompt);
   return (

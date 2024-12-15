@@ -3,7 +3,6 @@ import CodeEditorWindow from "./CodeEditorWindow";
 import axios from "axios";
 import { classnames } from "../utils/general";
 import { languageOptions } from "../constants/languageOptions";
-import OpenAI from "openai";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { defineTheme } from "../lib/defineTheme";
@@ -18,18 +17,10 @@ import CodeEditorWindow2 from "./CodeEditorWindow2";
 import { Button, Modal, Spinner, Tabs, TextInput } from "flowbite-react";
 import { Link, json } from "react-router-dom";
 import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
-import { RiRobot2Line } from "react-icons/ri";
 import { SiCcleaner, SiCompilerexplorer } from "react-icons/si";
 import { CiSaveDown2 } from "react-icons/ci";
 import languageConstant from "../constants/languageConstant";
-import { IoCloudOfflineOutline } from "react-icons/io5";
 import { VscOpenPreview } from "react-icons/vsc";
-import { MdDeleteOutline } from "react-icons/md";
-const openai = new OpenAI({
-  apiKey: process.env.REACT_APP_GPT_KEY, // For self-hosted version you can put anything
-  baseURL: "https://api.pawan.krd/v1", // For self-hosted version, use "http://localhost:3040/v1"
-  dangerouslyAllowBrowser: true,
-});
 
 const javascriptDefault = `/**
 * Problem: Binary Search: Search a sorted array for a target value.
@@ -74,7 +65,6 @@ const Landing = () => {
   const [promtValue, setPromptValue] = useState("");
   const [gptLoading, setGptLoading] = useState(false);
   const [activePrompt, setActivePrompt] = useState("pai");
-  const [isOffline, setIsOffline] = useState(false);
   const [filecode, setFileCode] = useState("");
 
   const enterPress = useKeyPress("Enter");
@@ -89,7 +79,7 @@ const Landing = () => {
   //   if (enterPress && ctrlPress) {
   //     console.log("enterPress", enterPress);
   //     console.log("ctrlPress", ctrlPress);
-  //     handleCompile();
+  //     handlePiston();
   //   }
   // }, [ctrlPress, enterPress]);
   const onChange = (action, data) => {
@@ -102,52 +92,6 @@ const Landing = () => {
         console.warn("case not handled!", action, data);
       }
     }
-  };
-  const handleCompile = () => {
-    setProcessing(true);
-    const formData = {
-      language_id: language.id,
-      // encode source code in base64
-      source_code: btoa(code),
-      stdin: btoa(customInput),
-    };
-    const options = {
-      method: "POST",
-      url: process.env.REACT_APP_RAPID_API_URL,
-      params: { base64_encoded: "true", fields: "*" },
-      headers: {
-        "content-type": "application/json",
-        "Content-Type": "application/json",
-        "X-RapidAPI-Host": process.env.REACT_APP_RAPID_API_HOST,
-        "X-RapidAPI-Key": process.env.REACT_APP_RAPID_API_KEY,
-      },
-      data: formData,
-    };
-
-    axios
-      .request(options)
-      .then(function (response) {
-        console.log("res.data", response.data);
-        const token = response.data.token;
-        checkStatus(token);
-      })
-      .catch((err) => {
-        // console.log(err)
-        let error = err.response ? err.response.data : err;
-        // get error status
-        let status = err.response.status;
-        console.log("status", status);
-        if (status === 429) {
-          console.log("too many requests", status);
-
-          showErrorToast(
-            `Quota of 100 requests exceeded for the Day! Please read the blog on freeCodeCamp to learn how to setup your own RAPID API Judge0!`,
-            10000
-          );
-        }
-        setProcessing(false);
-        console.log("catch block...", error);
-      });
   };
 
   const checkStatus = async (token) => {
@@ -229,25 +173,31 @@ const Landing = () => {
     setShowAiEditor((prev) => !prev);
   }
 
-  async function handleGptResp() {
+  async function handleGptResp(e) {
+    e.preventDefault();
     console.log(promtValue);
     setGptLoading(true);
-    const chatCompletion = await openai.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content:
-            " just provide code , give code in proper format that can be display within a div tag with proprer formatting dont use any comments dont give html code use new line and tab spaces and indentation to properly format code dont give comments and dont give explaination,give multiline response",
+
+    try {
+      const response = await fetch("http://localhost:5000/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        { role: "user", content: promtValue },
-      ],
-      model: "pai-001",
-    });
-    console.log(chatCompletion.choices[0].message.content);
-    setGptResponse(
-      chatCompletion.choices[0].message.content.replace("```", "")
-    );
-    setGptLoading(false);
+        body: JSON.stringify({ prompt: promtValue }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch response");
+      }
+
+      const data = await response.json();
+      setGptResponse(data.response.replace("```", ""));
+    } catch (error) {
+      console.error(error.message);
+    } finally {
+      setGptLoading(false);
+    }
   }
 
   async function handleSelfGpt() {
@@ -355,56 +305,6 @@ const Landing = () => {
     }
   }
 
-  function handleOffline() {
-    setIsOffline((prev) => !prev);
-  }
-
-  async function handleOfflineCompile() {
-    setProcessing(true);
-    const formData = {
-      code: code,
-    };
-
-    try {
-      let a = JSON.stringify(formData);
-      console.log(a);
-      const response = await fetch(
-        `http://localhost:4000/execute/${language.name}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: a,
-        }
-      );
-
-      // Check if request was successful
-      if (response.ok) {
-        const responseData = await response.json();
-        // Handle successful response data
-        console.log(responseData);
-        setOutputDetails(responseData);
-
-        showSuccessToast(`Compiled Successfully!`);
-
-        setProcessing(false);
-      } else {
-        // Handle error response
-        const responseData = await response.json();
-
-        console.error("Error:", responseData);
-        showErrorToast("Failed to execute");
-        setOutputDetails(responseData);
-        setProcessing(false);
-      }
-    } catch (error) {
-      // Handle network errors or other exceptions
-      if (error) console.error("Error:", error);
-      setProcessing(false);
-    }
-  }
-
   function handleFileChange(event) {
     const file = event.target.files[0];
     const reader = new FileReader();
@@ -441,10 +341,7 @@ const Landing = () => {
           <input className="w-28" type="file" onChange={handleFileChange} />
         </div>
         <div className="px-1 ml-1 py-2 mr-2">
-          <LanguagesDropdown
-            isOffline={isOffline}
-            onSelectChange={onSelectChange}
-          />
+          <LanguagesDropdown onSelectChange={onSelectChange} />
         </div>
         <div className="px-4 py-2">
           <ThemeDropdown handleThemeChange={handleThemeChange} theme={theme} />
@@ -495,37 +392,27 @@ const Landing = () => {
             Save
           </button>
         </div>
-        {/* <div className="px-2 py-2 ">
-          <button
-            className={`  inline-block cursor-pointer border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 ${
-              isOffline && "bg-black text-white "
-            }  `}
-            onClick={handleOffline}
-          >
-            <IoCloudOfflineOutline className="inline-block mr-1" />
-            Use Offline
-          </button>
-        </div> */}
-        {/* modal  code */}
 
         <Modal show={openModal} onClose={() => setOpenModal(false)}>
           <Modal.Header>Ask Ai</Modal.Header>
           <Modal.Body>
-            <TextInput
-              value={promtValue}
-              onChange={(e) => setPromptValue(e.target.value)}
-              placeholder="Enter your query here"
-              className="w-4/5 inline-block mr-4"
-              variant="outlined"
-            />
-            <Button
-              className="inline-block"
-              color={"success"}
-              onClick={activePrompt === "pai" ? handleGptResp : handleSelfGpt}
-              // onClick={handleSelfGpt}
-            >
-              Generate
-            </Button>
+            <form onSubmit={handleGptResp}>
+              <TextInput
+                value={promtValue}
+                onChange={(e) => setPromptValue(e.target.value)}
+                placeholder="Enter your query here"
+                className="w-4/5 inline-block mr-4"
+                variant="outlined"
+              />
+              <Button
+                className="inline-block"
+                color={"success"}
+                onClick={activePrompt === "pai" ? handleGptResp : handleSelfGpt}
+                // onClick={handleSelfGpt}
+              >
+                Generate
+              </Button>
+            </form>
             <div className="mt-1">
               <button
                 className={`px-3 py-2 my-2 rounded-xl hover:bg-gray-200 mx-2 border-2 ${
@@ -609,8 +496,7 @@ const Landing = () => {
             />
             <div>
               <button
-                // onClick={handleCompile}
-                onClick={isOffline ? handleOfflineCompile : handlePiston}
+                onClick={handlePiston}
                 disabled={!code}
                 className={classnames(
                   "mt-4 inline-block border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0 hover:bg-green-500 hover:text-white",

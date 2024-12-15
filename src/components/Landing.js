@@ -179,13 +179,16 @@ const Landing = () => {
     setGptLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt: promtValue }),
-      });
+      const response = await fetch(
+        "https://ai-react-code-editor.onrender.com/api/generate",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: promtValue }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch response");
@@ -287,7 +290,7 @@ const Landing = () => {
         // Handle successful response data
         console.log(responseData.run.code);
         setOutputDetails(responseData.run);
-        if (responseData.run.code == 0) {
+        if (responseData.run.code === 0) {
           showSuccessToast(`Compiled Successfully!`);
         } else {
           showErrorToast("failed to execute");
@@ -444,7 +447,7 @@ const Landing = () => {
                 </>
               )}
 
-              {gptResponse ? (
+              {gptResponse || gptLoading ? (
                 <div>
                   <SyntaxHighlighter language="javascript">
                     {!gptLoading && gptResponse}
